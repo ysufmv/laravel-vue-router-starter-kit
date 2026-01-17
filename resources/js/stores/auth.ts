@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function logout() {
         try {
             await api.post('/logout');
-        } catch (error) {
+        } catch {
             // Ignore errors - we want to clear state regardless
         }
         user.value = null;
