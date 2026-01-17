@@ -1,0 +1,129 @@
+<script setup lang="ts">
+import HeadingSmall from '@/components/HeadingSmall.vue';
+import InputError from '@/components/InputError.vue';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { useAuthStore } from '@/stores/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const password = ref('');
+const errors = ref<Record<string, string>>({});
+const processing = ref(false);
+const isOpen = ref(false);
+
+async function handleDelete() {
+    processing.value = true;
+    errors.value = {};
+
+    try {
+        await authStore.deleteAccount(password.value);
+        router.push('/');
+    } catch (error: any) {
+        if (error.response?.data?.errors) {
+            errors.value = error.response.data.errors;
+        } else if (error.response?.data?.message) {
+            errors.value = { password: error.response.data.message };
+        }
+    } finally {
+        processing.value = false;
+    }
+}
+
+function handleCancel() {
+    password.value = '';
+    errors.value = {};
+    isOpen.value = false;
+}
+</script>
+
+<template>
+    <div class="space-y-6">
+        <HeadingSmall
+            title="Delete account"
+            description="Delete your account and all of its resources"
+        />
+        <div
+            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+        >
+            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+                <p class="font-medium">Warning</p>
+                <p class="text-sm">
+                    Please proceed with caution, this cannot be undone.
+                </p>
+            </div>
+            <Dialog v-model:open="isOpen">
+                <DialogTrigger as-child>
+                    <Button variant="destructive" data-test="delete-user-button"
+                        >Delete account</Button
+                    >
+                </DialogTrigger>
+                <DialogContent>
+                    <form @submit.prevent="handleDelete" class="space-y-6">
+                        <DialogHeader class="space-y-3">
+                            <DialogTitle
+                                >Are you sure you want to delete your
+                                account?</DialogTitle
+                            >
+                            <DialogDescription>
+                                Once your account is deleted, all of its
+                                resources and data will also be permanently
+                                deleted. Please enter your password to confirm
+                                you would like to permanently delete your
+                                account.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div class="grid gap-2">
+                            <Label for="password" class="sr-only"
+                                >Password</Label
+                            >
+                            <Input
+                                id="password"
+                                v-model="password"
+                                type="password"
+                                placeholder="Password"
+                            />
+                            <InputError :message="errors.password" />
+                        </div>
+
+                        <DialogFooter class="gap-2">
+                            <DialogClose as-child>
+                                <Button
+                                    variant="secondary"
+                                    type="button"
+                                    @click="handleCancel"
+                                >
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                :disabled="processing"
+                                data-test="confirm-delete-user-button"
+                            >
+                                <Spinner v-if="processing" />
+                                Delete account
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </div>
+    </div>
+</template>
