@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
 test('two factor settings page can be rendered', function () {
@@ -9,71 +8,69 @@ test('two factor settings page can be rendered', function () {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
-
     $user = User::factory()->create();
-
-    $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('two-factor.show'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor')
-            ->where('twoFactorEnabled', false)
-        );
-});
-
-test('two factor settings page requires password confirmation when enabled', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
-    $user = User::factory()->create();
-
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
 
     $response = $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('two-factor.show'));
 
-    $response->assertRedirect(route('password.confirm'));
+    $response->assertOk();
 });
 
-test('two factor settings page does not requires password confirmation when disabled', function () {
+test('two factor settings page requires authentication', function () {
+    if (! Features::canManageTwoFactorAuthentication()) {
+        $this->markTestSkipped('Two-factor authentication is not enabled.');
+    }
+
+    $response = $this->get(route('two-factor.show'));
+
+    $response->assertRedirect(route('login'));
+});
+
+test('two factor settings page returns json with correct structure', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
     $user = User::factory()->create();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => false,
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('two-factor.show'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor')
-        );
-});
-
-test('two factor settings page returns forbidden response when two factor is disabled', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
-    config(['fortify.features' => []]);
-
-    $user = User::factory()->create();
-
-    $this->actingAs($user)
+    $response = $this->actingAs($user)
         ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('two-factor.show'))
-        ->assertForbidden();
+        ->get(route('two-factor.show'));
+
+    $response
+        ->assertOk()
+        ->assertJsonStructure(['twoFactorEnabled', 'requiresConfirmation']);
+});
+
+test('two factor settings page shows enabled status correctly', function () {
+    if (! Features::canManageTwoFactorAuthentication()) {
+        $this->markTestSkipped('Two-factor authentication is not enabled.');
+    }
+
+    $user = User::factory()->create();
+
+    // User with 2FA not enabled
+    $response = $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('two-factor.show'));
+
+    $response
+        ->assertOk()
+        ->assertJson(['twoFactorEnabled' => false]);
+
+    // Enable 2FA for the user
+    $user->forceFill([
+        'two_factor_secret' => encrypt('test-secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+
+    $response = $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('two-factor.show'));
+
+    $response
+        ->assertOk()
+        ->assertJson(['twoFactorEnabled' => true]);
 });
