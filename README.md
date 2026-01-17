@@ -44,7 +44,7 @@ A modern, full-featured starter kit for building Single Page Applications with L
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/laravel-vue-router-starter.git
+git clone https://github.com/ysufmv/laravel-vue-router-starter-kit.git
 cd laravel-vue-router-starter
 
 # Install PHP dependencies

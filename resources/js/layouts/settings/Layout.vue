@@ -1,37 +1,34 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useActiveUrl } from '@/composables/useActiveUrl';
-import { toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
-import { edit as editProfile } from '@/routes/profile';
-import { show } from '@/routes/two-factor';
-import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const sidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
-        href: editProfile(),
+        href: '/settings/profile',
     },
     {
         title: 'Password',
-        href: editPassword(),
+        href: '/settings/password',
     },
     {
         title: 'Two-Factor Auth',
-        href: show(),
+        href: '/settings/two-factor',
     },
     {
         title: 'Appearance',
-        href: editAppearance(),
+        href: '/settings/appearance',
     },
 ];
 
-const { urlIsActive } = useActiveUrl();
+const isActive = (href: string) => {
+    return route.path === href || route.path.toLowerCase() === href.toLowerCase();
+};
 </script>
 
 <template>
@@ -49,28 +46,25 @@ const { urlIsActive } = useActiveUrl();
                 >
                     <Button
                         v-for="item in sidebarNavItems"
-                        :key="toUrl(item.href)"
+                        :key="item.href as string"
                         variant="ghost"
                         :class="[
                             'w-full justify-start',
-                            { 'bg-muted': urlIsActive(item.href) },
+                            { 'bg-muted': isActive(item.href as string) },
                         ]"
                         as-child
                     >
-                        <Link :href="item.href">
-                            <component :is="item.icon" class="h-4 w-4" />
+                        <RouterLink :to="item.href">
                             {{ item.title }}
-                        </Link>
+                        </RouterLink>
                     </Button>
                 </nav>
             </aside>
 
             <Separator class="my-6 lg:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
-                    <slot />
-                </section>
+            <div class="flex-1 lg:max-w-2xl">
+                <slot />
             </div>
         </div>
     </div>

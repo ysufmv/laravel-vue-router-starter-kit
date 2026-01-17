@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteLocationNormalized, type NavigationGuardNext } from 'vue-router';
 import { routes } from 'vue-router/auto-routes';
 
 const router = createRouter({
@@ -7,7 +7,7 @@ const router = createRouter({
 });
 
 // Navigation guards
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
     const { useAuthStore } = await import('@/stores/auth');
     const authStore = useAuthStore();
 

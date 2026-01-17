@@ -4,7 +4,7 @@ import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
 import App from './App.vue';
-import router from './router';
+import router from './router/index';
 import { initializeTheme } from './composables/useAppearance';
 
 const app = createApp(App);

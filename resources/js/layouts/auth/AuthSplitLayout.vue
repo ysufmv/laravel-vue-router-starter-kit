@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { home } from '@/routes';
-
-const page = usePage();
-const name = page.props.name;
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 </script>
 
 <template>
@@ -21,13 +17,13 @@ defineProps<{
             class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
         >
             <div class="absolute inset-0 bg-zinc-900" />
-            <Link
-                :href="home()"
+            <RouterLink
+                to="/"
                 class="relative z-20 flex items-center text-lg font-medium"
             >
                 <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
-                {{ name }}
-            </Link>
+                {{ appName }}
+            </RouterLink>
         </div>
         <div class="lg:p-8">
             <div

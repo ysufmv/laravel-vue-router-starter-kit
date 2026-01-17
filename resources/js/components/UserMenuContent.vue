@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import { LogOut, Settings } from 'lucide-vue-next';
 
 import {
@@ -13,7 +13,7 @@ import { useAuthStore } from '@/stores/auth';
 import type { User } from '@/types';
 
 interface Props {
-    user: User | null;
+    user: User;
 }
 
 defineProps<Props>();

@@ -18,11 +18,11 @@ definePage({
 });
 
 const router = useRouter();
-const route = useRoute();
+const route = useRoute('/auth/reset-password/[token]');
 const authStore = useAuthStore();
 
 const form = reactive({
-    token: (route.params.token as string) || '',
+    token: route.params.token || '',
     email: (route.query.email as string) || '',
     password: '',
     password_confirmation: '',

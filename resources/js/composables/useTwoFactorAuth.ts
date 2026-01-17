@@ -1,17 +1,11 @@
+import api from '@/lib/axios';
 import { computed, ref } from 'vue';
 
-import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
-
 const fetchJson = async <T>(url: string): Promise<T> => {
-    const response = await fetch(url, {
+    const response = await api.get(url, {
         headers: { Accept: 'application/json' },
     });
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch: ${response.status}`);
-    }
-
-    return response.json();
+    return response.data;
 };
 
 const errors = ref<string[]>([]);
@@ -27,7 +21,7 @@ export const useTwoFactorAuth = () => {
     const fetchQrCode = async (): Promise<void> => {
         try {
             const { svg } = await fetchJson<{ svg: string; url: string }>(
-                qrCode.url(),
+                '/user/two-factor-qr-code',
             );
 
             qrCodeSvg.value = svg;
@@ -40,7 +34,7 @@ export const useTwoFactorAuth = () => {
     const fetchSetupKey = async (): Promise<void> => {
         try {
             const { secretKey: key } = await fetchJson<{ secretKey: string }>(
-                secretKey.url(),
+                '/user/two-factor-secret-key',
             );
 
             manualSetupKey.value = key;
@@ -69,13 +63,25 @@ export const useTwoFactorAuth = () => {
     const fetchRecoveryCodes = async (): Promise<void> => {
         try {
             clearErrors();
-            recoveryCodesList.value = await fetchJson<string[]>(
-                recoveryCodes.url(),
-            );
+            const data = await fetchJson<string[]>('/user/two-factor-recovery-codes');
+            recoveryCodesList.value = data;
         } catch {
             errors.value.push('Failed to fetch recovery codes');
             recoveryCodesList.value = [];
         }
+    };
+
+    const regenerateRecoveryCodes = async (): Promise<void> => {
+        try {
+            clearErrors();
+            await api.post('/user/two-factor-recovery-codes');
+        } catch {
+            errors.value.push('Failed to regenerate recovery codes');
+        }
+    };
+
+    const confirmTwoFactor = async (code: string): Promise<void> => {
+        await api.post('/user/confirmed-two-factor-authentication', { code });
     };
 
     const fetchSetupData = async (): Promise<void> => {
@@ -101,5 +107,7 @@ export const useTwoFactorAuth = () => {
         fetchSetupKey,
         fetchSetupData,
         fetchRecoveryCodes,
+        regenerateRecoveryCodes,
+        confirmTwoFactor,
     };
 };

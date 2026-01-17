@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import VueRouter from 'unplugin-vue-router/vite';
+import { VueRouterAutoImports } from 'unplugin-vue-router';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -30,12 +31,9 @@ export default defineConfig({
         AutoImport({
             imports: [
                 'vue',
-                'vue-router',
+                VueRouterAutoImports,
                 '@vueuse/core',
                 'pinia',
-                {
-                    'unplugin-vue-router/runtime': ['definePage'],
-                },
             ],
             dts: 'resources/js/auto-imports.d.ts',
             dirs: [
