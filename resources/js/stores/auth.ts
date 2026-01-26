@@ -91,17 +91,17 @@ export const useAuthStore = defineStore('auth', () => {
         password: string;
         password_confirmation: string;
     }) {
-        return api.put('/user/password', data);
+        return api.put('/api/settings/password', data);
     }
 
     async function updateProfile(data: { name: string; email: string }) {
-        const response = await api.put('/user/profile-information', data);
+        const response = await api.patch('/api/settings/profile', data);
         await fetchUser();
         return response;
     }
 
     async function deleteAccount(password: string) {
-        await api.delete('/user', { data: { password } });
+        await api.delete('/api/settings/profile', { data: { password } });
         user.value = null;
     }
 

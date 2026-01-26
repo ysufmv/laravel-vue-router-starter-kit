@@ -75,13 +75,26 @@ Route::get('/auth/two-factor-challenge', function () use ($spaView) {
 
 /*
 |--------------------------------------------------------------------------
+| Settings Routes (SPA views)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () use ($spaView) {
+    Route::redirect('/settings', '/settings/profile');
+    Route::get('/settings/profile', $spaView)->name('profile.edit');
+    Route::get('/settings/password', $spaView)->name('password.edit');
+    Route::get('/settings/appearance', $spaView)->name('appearance.edit');
+    Route::get('/settings/two-factor', $spaView)->name('two-factor.edit');
+});
+
+/*
+|--------------------------------------------------------------------------
 | SPA Catch-All Route
 |--------------------------------------------------------------------------
 |
 | This route will catch all requests and return the SPA view.
 | Vue Router will handle client-side routing.
-| Note: The settings/* paths are handled by API controllers in settings.php
 |
 */
 
-Route::get('/{any?}', $spaView)->where('any', '^(?!api|sanctum|settings).*$')->name('spa');
+Route::get('/{any?}', $spaView)->where('any', '^(?!api|sanctum).*$')->name('spa');
